@@ -96,7 +96,6 @@ class appVote:
         #self.root.attributes('-fullscreen',True)
         self.root.minsize(1000, 700)
         self.root.title("Cégep Joliette Télécom@" + str(socket.gethostname()))
-        self.root.wm_attributes('-alpha', 0.75)
 
         try :
 
