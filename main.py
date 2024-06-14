@@ -96,6 +96,7 @@ class appVote:
         #self.root.attributes('-fullscreen',True)
         self.root.minsize(1000, 700)
         self.root.title("Cégep Joliette Télécom@" + str(socket.gethostname()))
+        #self.root.wm_attributes('-alpha', 0.75)
 
         try :
 
@@ -257,6 +258,11 @@ class appVote:
         if self.btnDemarrer['text'] == 'Démarrer' :
             self.btnDemarrer.configure(text="Arrêter", bg="red", fg="yellow", activebackground="red")
             print("Le vote est en cours.")
+            
+            # donnée à envoyer au client, F=Reset vote (LED)
+            global b_data
+            b_data='F'
+            
             self.effacerResultatVote()
             self.initialiseVoteurs(self.parametres["nb_voteurs"], self.parametres["nb_colonnes"], self.parametres["nb_rangees"])
             self.majTreeview()
@@ -324,7 +330,16 @@ class appVote:
                     elif s.fileno() != -1 :
                         print(f"s.fileno() == {s.fileno()}")
                         data = s.recv(1024).decode()
-                        if(len(data) > 0):
+                        
+                        # donnée envoyée au client, F=Reset vote (LED), 0=Continu
+                        global b_data
+                        print("b_data = ",b_data)
+                        s.sendall(b_data.encode())
+                                               
+                        if b_data=='F':
+                                b_data='0'
+                        
+                        elif(len(data) > 0):
                             print("data serveur == " + data)
                             qGUI.put(data)
                         else :
