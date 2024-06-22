@@ -24,6 +24,7 @@ Mise en route du programme
 2- Récupérer les fichiers du programme mvote
                                                                        
 └─$ git clone https://github.com/CLJ-Electro/mvote.git 
+
 Cloning into 'mvote'...
 remote: Enumerating objects: 45, done.
 remote: Counting objects: 100% (45/45), done.
@@ -38,6 +39,7 @@ Resolving deltas: 100% (18/18), done.
 
 4- Lancer l'exécution du programme avec la commande suivante :                                                                        
 └─$ python main.py
+
 10:46:24: Main    : Début du programme
 image_width == 1184
 image_height == 164
