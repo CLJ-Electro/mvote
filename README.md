@@ -4,7 +4,7 @@ Ce script permet de recevoir les votes d'un groupe de personnes et d'afficher le
 
 ![image](https://github.com/CLJ-Electro/mvote/assets/171524994/655b5935-55b6-4a62-b8e9-fe41adc3e437)
 
-Le panneau à gauche de l'application permet de définir et d'identifier les voteurs. Cette section peut être configurée à l'aide des paramètres suivants dans le fichier "config.json" :
+Le panneau à gauche de l'application permet d'identifier les voteurs et leur vote. Cette section peut être configurée à l'aide des paramètres suivants dans le fichier "config.json" :
   - "nb_voteurs" : Ce paramètre permet de définir le nombre total de voteurs à considérer;
   - "nb_colonnes": Définit le nombre de colonnes présentes dans le panneau gauche;
   - "nb_rangees" : Définit le nombre de rangées présentes dans le panneau gauche
@@ -17,15 +17,12 @@ Mise en route du programme
 
 1- Dand un terminal, créer votre répertoire de travail dans votre répertoire personnel et positionner votre répertoire de travail à cet endroit.
 
-┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~]
 └─$ mkdir Tel-git
                                                                        
-┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~]
 └─$ cd Tel-git 
 
 2- Récupérer les fichiers du programme mvote
                                                                        
-┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~/Tel-git]
 └─$ git clone https://github.com/CLJ-Electro/mvote.git 
 Cloning into 'mvote'...
 remote: Enumerating objects: 45, done.
@@ -37,11 +34,9 @@ Resolving deltas: 100% (18/18), done.
 
 3- Déplacer votre répertoire de travail dans le répertoire "mvote" nouvellement créé :
 
-┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~/Tel-git]
 └─$ cd mvote   
 
 4- Lancer l'exécution du programme avec la commande suivante :                                                                        
-┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~/Tel-git/mvote]
 └─$ python main.py   
 10:46:24: Main    : Début du programme
 image_width == 1184
