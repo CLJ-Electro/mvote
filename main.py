@@ -7,6 +7,7 @@ import tkinter.messagebox
 import threading
 import select
 from queue import Queue
+from tkinter import filedialog as fd
 
 import logging
 import pdb
@@ -68,8 +69,6 @@ class appVote:
 
     lafin = False
     photo = None
-    almRouge = None
-    almVert = None
     adresseIP = None
     port = None
     root = None
@@ -78,6 +77,12 @@ class appVote:
     lafinSrv = False
 
     def __init__(self, geo="1000x700+225+150", confFile="config.json"):
+
+        filetypes = ( ('Fichiers de config', '*.json'), ('Tous les fichiers', '*.*') )
+        filename = fd.askopenfilename(title='Choisir le fichier de configuration', filetypes=filetypes)
+
+        if filename:
+            confFile = filename
 
         with open(confFile, 'r') as file:
             self.parametres = json.load(file)
@@ -100,8 +105,6 @@ class appVote:
 
         try :
 
-            self.almRouge = tk.PhotoImage(file="almRouge.png")
-            self.almVerte = tk.PhotoImage(file="almVerte.png")
             self.photo = tk.PhotoImage(file="logodemo_t.png")
 
             # Load the custom icon image
@@ -165,20 +168,8 @@ class appVote:
         self.lblTitre.configure(justify='center')
         self.lblTitre.configure(font=("Courrier New", 10, "bold"))
 
-        self.lblDureeVote = tk.Label(self.panneauLateral, anchor="w")
-        self.lblDureeVote.place(relx=0.05, rely=0.22, relheight=0.05, relwidth=0.45)
-        self.lblDureeVote.configure(text="Durée du vote (s): ", bg="grey", fg="white")
-        self.lblDureeVote.configure(justify='center')
-        self.lblDureeVote.configure(font=("Courrier New", 10, "bold"))
-
-        self.dureeVoteVar = tk.StringVar()
-        self.dureeVoteVar.set("0")
-        
-        self.entryDureeVote = tk.Entry(self.panneauLateral, textvariable=self.dureeVoteVar)
-        self.entryDureeVote.place(relx=0.50, rely=0.22, width=50)
-
         self.btnDemarrer = tk.Button(self.panneauLateral, text="Démarrer", command = self.controlerVote)
-        self.btnDemarrer.place(relx=0.75, rely=0.22, relheight=0.05, relwidth=0.2)
+        self.btnDemarrer.place(relx=0.75, rely=0.13, relheight=0.05, relwidth=0.2)
         self.btnDemarrer.configure(bg="green", fg="yellow", activebackground="green")
         
         self.entete_voteurs = ["Choix", "Résultat"]
@@ -202,7 +193,7 @@ class appVote:
         vsb.pack(side="right", fill="y")
         hsb.pack(side="bottom", fill="x")
 
-        self.tree.place(relx=0.05, rely=0.32, relheight=0.65, relwidth=0.9)
+        self.tree.place(relx=0.05, rely=0.22, relheight=0.75, relwidth=0.9)
         self.tree['show'] = 'tree headings'
 
         rng = range(len(self.parametres["couleurs_votes"]))
@@ -218,9 +209,8 @@ class appVote:
         self.tree.bind("<Button-3>", self.itemMouseEvent)
         self.tree.bind("<Double-1>", self.itemMouseEvent)
 
-        self.myCheckAlias = tk.IntVar(self.root)
-        self.myCheckAlias.set(1)
-        self.mAlias_check = tk.Checkbutton(self.panneauLateral, text = "Afficher Alias", variable = self.myCheckAlias, onvalue = 1, offvalue = 0, height=1, width = 12, bg="grey", fg = "white", command=self.aliasActive)
+        self.myCheckAlias = tk.IntVar(value=1)
+        self.mAlias_check = tk.Checkbutton(self.panneauLateral, text = "Afficher Alias", variable = self.myCheckAlias, onvalue = 1, offvalue = 0, height=1, width = 12, bg="grey", fg = "white", selectcolor="grey", command=self.aliasActive)
 
         self.mAlias_check.place(relx=0.05, rely=0.15, anchor=tk.W)
         self.aliasActive()
@@ -498,6 +488,16 @@ format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 logging.info("Main    : Début du programme")
 
-application = appVote("1190x750+225+150")
+if len(sys.argv) > 1 :
+    try :
+        application = appVote("1190x750+225+150", sys.argv[1])
+    except Exception as e:
+        tk.messagebox.showinfo("Erreur!", f"Le fichier de configuration reçu comme paramètre {sys.argv[1]} ne peut être utilisé. Le programme termine prématurément. Erreur : {e}", )
+        sys.exit()
+else:
+    application = appVote("1190x750+225+150")
 application.run()
+
+    
+
     
