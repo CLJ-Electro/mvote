@@ -37,7 +37,7 @@ Resolving deltas: 100% (18/18), done.
 └─$ cd mvote   
 
 4- Lancer l'exécution du programme avec la commande suivante :                                                                        
-└─$ python main.py   
+└─$ python main.py
 10:46:24: Main    : Début du programme
 image_width == 1184
 image_height == 164
