@@ -53,9 +53,10 @@ image_width == 1184
 
 image_height == 164
                    
-Un dialogue apparaît alors afin de demander quel fichier de configuration l'usager veut utiliser. L'usager doit alors choisir le fichier de configuration désiré. Cela permet à plusieurs enseignants d'utilser une configuration différente pour chaque cours. Si l'usager appuie sur la touche [Esc] du clavier, ou après un délai de 10 secondes, le programme démarre en utilisant le fichier de configuration "config.json".
+Un dialogue apparaît alors afin de demander quel fichier de configuration l'usager veut utiliser. L'usager doit alors choisir le fichier de configuration désiré. Cela permet à plusieurs enseignants d'utilser une configuration différente pour chaque cours. Si l'usager n'appuie pas sur le clavier ou la sourie, le programme démarre automatiquement après un délai de 10 secondes en utilisant le fichier de configuration "config.json".
 
-![image](https://github.com/CLJ-Electro/mvote/assets/171524994/61d5678b-3e8d-4cfa-8959-b048dece805c)
+![image](https://github.com/CLJ-Electro/mvote/assets/171524994/57de0959-ad2e-4c0e-ab74-fda253e63395)
+
 
  
 
