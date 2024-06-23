@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 #
-import sys,time,socket,json,socket
+import sys,time,socket,json,socket,glob
 import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
+import tkinter.font as tkFont
 import threading
 import select
 from queue import Queue
@@ -50,7 +51,7 @@ class dlgVoteur:
     def __init__(self, parent):
         self.parent = parent
         self.top = tk.Toplevel(parent)
-        self.top.title("Configuration")
+        self.top.title("Configuration voteur")
         self.top.geometry("800x400")
         self.top.resizable(True, True)
 
@@ -64,6 +65,61 @@ class dlgVoteur:
         self.top.wait_window()
         return self.myCheckEmail.get()
     
+class dlgConfFile:
+    
+    def __init__(self, parent):
+        self.parent = parent
+        self.parent.withdraw()
+        self.top = tk.Toplevel(parent)
+        self.top.title("Fichier de configuration")
+        self.top.geometry("500x300")
+        self.top.resizable(True, True)
+        self.top.bind('<Return>', self.event_terminer)
+
+        helv = tkFont.Font(family='Helvetica',size=24, weight='bold')
+        
+        self.myConfFile = tk.StringVar(value=glob.glob("./*.json"))
+        
+        self.mListBox = tk.Listbox(self.top, listvariable=self.myConfFile, height=5,
+                                   font=helv, selectmode=tk.SINGLE)
+        
+        self.mListBox.place(relx=0.05, rely=0.05, relheight=0.75, relwidth=0.9)
+        #self.mListBox.selection_set( first = 0 )
+        self.mListBox.bind('<<ListboxSelect>>', self.lstSelection)
+        self.mListBox.focus_set()
+        
+        self.mBtnOK = tk.Button(self.top, text="OK", command = self.terminer)
+        self.mBtnOK.place(relx=0.75, rely=0.85, relheight=0.1, relwidth=0.2)
+        self.mBtnOK.configure(bg="green", fg="yellow", activebackground="green")
+         
+        self.choix = ""
+        self.autoDelai = True
+
+        self.top.after(10000, self.auto_terminer)
+        
+    def lstSelection(self, event):
+        self.autoDelai = False
+        
+    def event_terminer(self, event):
+        self.terminer()
+        
+    def auto_terminer(self):
+        if self.autoDelai :
+            self.terminer()
+        
+    def terminer(self):
+        if 1 == len(self.mListBox.curselection()):
+            #Si un fichier a été sélectionné, on récupère son nom
+            #sinon on laisse la chaîne "self.choix" vide.
+            self.choix = self.mListBox.get(self.mListBox.curselection())
+        self.top.quit()
+        self.top.destroy()
+        
+    def show(self):
+        self.top.wm_deiconify()
+        self.top.wait_window()
+        self.parent.deiconify()
+        return self.choix
 
 class appVote:
 
@@ -78,12 +134,20 @@ class appVote:
 
     def __init__(self, geo="1000x700+225+150", confFile="config.json"):
 
-        filetypes = ( ('Fichiers de config', '*.json'), ('Tous les fichiers', '*.*') )
-        filename = fd.askopenfilename(title='Choisir le fichier de configuration', filetypes=filetypes)
+        self.root = tk.Tk()
+        self.root.geometry(geo)
+        #self.root.resizable(False, False)
+        #self.root.attributes('-fullscreen',True)
+        self.root.minsize(1000, 700)
+        self.root.title("Cégep Joliette Télécom@" + str(socket.gethostname()))
+        
+        filename = dlgConfFile(self.root).show()
 
         if filename:
             confFile = filename
 
+        print(f"Fichier de configuration utilisé == {confFile}")
+        
         with open(confFile, 'r') as file:
             self.parametres = json.load(file)
 
@@ -95,10 +159,7 @@ class appVote:
         self.nbColonnes = self.parametres['nb_colonnes']
         self.nbRangees = self.parametres['nb_rangees']
 
-        self.root = tk.Tk()
         self.root.geometry(geo)
-        #self.root.resizable(False, False)
-        #self.root.attributes('-fullscreen',True)
         self.root.minsize(1000, 700)
         self.root.title("Cégep Joliette Télécom@" + str(socket.gethostname()))
         #self.root.wm_attributes('-alpha', 0.75)
@@ -202,7 +263,7 @@ class appVote:
             
             self.tree.tag_configure(self.parametres["couleurs_votes"][couleur], background=self.parametres["couleurs_votes"][couleur])
 
-            self.tree.insert("", tk.END, text='', tags=self.parametres["couleurs_votes"][couleur], values=[str(i+1), ""])
+            self.tree.insert("", tk.END, text='', tags=self.parametres["couleurs_votes"][couleur], values=[chr(i+97), ""])
             i += 1
         
         self.tree.bind("<Button-1>", self.itemMouseEvent)
