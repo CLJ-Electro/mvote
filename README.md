@@ -2,7 +2,8 @@
 
 Ce script permet de recevoir les votes d'un groupe de personnes et d'afficher le résultat à l'écran. La figure ci-dessous présente l'interface utilisateur préliminaire.
 
-![image](https://github.com/CLJ-Electro/mvote/assets/171524994/655b5935-55b6-4a62-b8e9-fe41adc3e437)
+![image](https://github.com/CLJ-Electro/mvote/assets/171524994/3b718103-dfbb-4ca1-8fe8-d48c6eaa6314)
+
 
 Le panneau à gauche de l'application permet d'identifier les voteurs et leur vote. Cette section peut être configurée à l'aide des paramètres suivants dans le fichier "config.json" :
   - "nb_voteurs" : Ce paramètre permet de définir le nombre total de voteurs à considér┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~/Tel-git/mvote]
