@@ -6,8 +6,7 @@ Ce script permet de recevoir les votes d'un groupe de personnes et d'afficher le
 
 
 Le panneau à gauche de l'application permet d'identifier les voteurs et leur vote. Cette section peut être configurée à l'aide des paramètres suivants dans le fichier "config.json" :
-  - "nb_voteurs" : Ce paramètre permet de définir le nombre total de voteurs à considér┌──(jacques㉿jacques-IdeaPad-3-15ITL6)-[~/Tel-git/mvote]
-er;
+  - "nb_voteurs" : Ce paramètre permet de définir le nombre total de voteurs à considérer;
   - "nb_colonnes": Définit le nombre de colonnes présentes dans le panneau gauche;
   - "nb_rangees" : Définit le nombre de rangées présentes dans le panneau gauche
 
