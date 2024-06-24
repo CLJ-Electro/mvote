@@ -285,7 +285,7 @@ class appVote:
         print(f"Len(resultats) == {len(self.resultats)}")
         for couleur in rng :
             #logging.info(f"Insertion de l'item {i} : resultats[{i}] == {self.resultats[i]}.")            
-            self.tree.insert("", tk.END, text='', tags=self.parametres["couleurs_votes"][couleur], values=[str(i+1), self.resultats[i]])
+            self.tree.insert("", tk.END, text='', tags=self.parametres["couleurs_votes"][couleur], values=[chr(i+97), self.resultats[i]])
             i += 1
 
 
