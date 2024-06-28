@@ -310,20 +310,14 @@ class appVote:
             self.btnDemarrer.configure(text="Arrêter", bg="red", fg="yellow", activebackground="red")
             print("Le vote est en cours.")
             
-            # donnée à envoyer au client, F=Reset vote (LED)
-            global b_data
-            b_data='F'
-            
             self.effacerResultatVote()
             self.initialiseVoteurs(self.parametres["nb_voteurs"], self.parametres["nb_colonnes"], self.parametres["nb_rangees"])
             self.majTreeview()
-            self.demarrerServeur()
-            self.demarrerHorloge()
+            #self.demarrerServeur()
         else :
             self.btnDemarrer.configure(text="Démarrer", bg="green", fg="yellow", activebackground="green")
             print("Le vote est terminé.")
-            self.arreterServeur()
-            self.arreterHorloge()
+            #self.arreterServeur()
 
     def effacerResultatVote(self):
 
@@ -336,87 +330,132 @@ class appVote:
         for voteur in self.voteurs :
             voteur.setVote(-1, "grey")
 
-    def demarrerServeur(self):
 
+    def recupereId(self, adresse):
+
+        rng = range(self.parametres["nb_voteurs"])
+        for i in rng:
+            if adresse == self.parametres["voteurs"][i][2].replace(":","").replace(" ","").replace("-",""):
+                return self.parametres["voteurs"][i][0]-1
+        return str(-1)
+    
+    # Envoyer un message à tous les clients
+    def message_a_tous(self, message):
+        #for queue_t in self.message_queues_transmission:
+        for client in self.write_list :
+            client.send(message.encode())
+            
+    def demarrerServeur(self):
 
         self.t = threading.Thread ( target = self.tServer, daemon=True )
         self.lafinSrv = False
         self.t.start()
         self.mAlias_check['state'] = tk.DISABLED
 
-        if self.dureeVoteVar.get() != "0" :
+        #if self.dureeVoteVar.get() != "0" :
 
-            try :
-                self.tempsDeVote = self.dureeVoteVar.get()
-                print(f"Temps du vote == {self.tempsDeVote}")
-            except Exception as e:
-                print(e)
+        #    try :
+        #        self.tempsDeVote = self.dureeVoteVar.get()
+        #        print(f"Temps du vote == {self.tempsDeVote}")
+        #    except Exception as e:
+        #        print(e)
                 
-    def tServer(self) :
+    def tServer(self) :  # Référence : https://pymotw.com/3/select/
 
+        #Listes des clients connectés
         self.read_list = []
-        
-        try:
+        self.write_list = []
 
-            self.mServeur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.mServeur.bind((self.adresseIP, self.port))
-            self.mServeur.listen(self.backlog)
+        # Dictionnaire des queues de réception (socket:Queue)
+        self.message_queues_reception = {}
 
-            self.read_list.append(self.mServeur)
+        # Dictionnaire des queues de transmission 
+        self.message_queues_transmission = {}
+
+        #try:
+
+        self.mServeur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.mServeur.bind((self.adresseIP, self.port))
+        self.mServeur.listen(self.backlog)
+
+        self.read_list.append(self.mServeur)
             
-            print("En attente d'un client...")
+        print("En attente d'un client...")
+        
+        while not self.lafinSrv :
 
-            while not self.lafinSrv :
+            readable, writable, errored = select.select(self.read_list, self.write_list, [])
 
-                readable, writable, errored = select.select(self.read_list, [], [])
-                for s in readable:
+            for s in readable:
 
-                    if s is self.mServeur and (s.fileno() != -1) :
-                        logging.info(f"Démarrage du thread serveur. fileno == {s.fileno()}")
-                        logging.info(f"s == {s}")
-                        client, addr = s.accept()
-                        logging.info(f"client == {client}")
-                        self.read_list.append(client)
-                        print(time.asctime() + "    Connexion établie avec le système : ", addr)
-                    elif s.fileno() != -1 :
-                        print(f"s.fileno() == {s.fileno()}")
-                        data = s.recv(1024).decode()
+                if s is self.mServeur and (s.fileno() != -1) :
+                    client, addr = s.accept()
+                    client.setblocking(0)
+                    self.read_list.append(client)
+                    self.write_list.append(client)
+                    self.message_queues_reception[client] = Queue() 
+                    self.message_queues_transmission[client] = Queue() 
+                    print(time.asctime() + "    Connexion établie avec le système : ", addr)
+                    
+                elif s.fileno() != -1 :
+                    
+                    print(f"s.fileno() == {s.fileno()}")
+                    data = s.recv(1024).decode()
                         
-                        # donnée envoyée au client, F=Reset vote (LED), 0=Continu
-                        global b_data
-                        print("b_data = ",b_data)
-                        s.sendall(b_data.encode())
-                                               
-                        if b_data=='F':
-                                b_data='0'
-                        
-                        elif(len(data) > 0):
-                            print("data serveur == " + data)
-                            qGUI.put(data)
+                    if(data):
+
+                        if s not in self.write_list :
+                            self.write_list.append(s)
+                                
+                        print("data reçue par le serveur == " + data)
+                        if data.startswith("?:"):
+                            print(f"ID ==>{self.recupereId(data[2:])}")
+                            msg = "ID:" + str(self.recupereId(data[2:]))
+                            s.send(msg.encode())
                         else :
-                            self.read_list.remove(client)
-                            break
-                time.sleep(0.01)
+                            self.message_queues_reception[s].put(data)
+
+                    else :
+                        if s in self.write_list:
+                            self.write_list.remove(s)
+                        print(f"client retiré de la liste : {s}")
+                        if s in self.read_list:
+                            self.read_list.remove(s)
+                        del self.message_queues_reception[s]
+                        del self.message_queues_transmission[s]
+                        s.close()
+                else:
+                    print(f"Cas par défaut. Ne devrait jamais passer ici! s = {s}")
+
+            for s in writable :
+                if s.fileno() >= 0 :
+                    while not self.message_queues_transmission[s].empty() :
+                        msg = self.message_queues_transmission[s].get_nowait()
+                        print(f"msg à envoyer == {msg}")
+                        s.send(msg)
+                    
+            for s in errored:
                 
-        except Exception as ose:
-            print ("Erreur du serveur sur le port " + str(self.port) + " du système " + str(self.adresseIP) + " .")
-            print ("")
-            print ("Exception : " + str(ose) )
-        
-        finally:
+                print(f"Socket ERROR! : {s}")
+                self.read_list.remove(s)
+                if s in self.write_list:
+                    self.write_list.remove(s)
+                s.close()
+                    
+                del self.message_queues_transmission[s]
+                del self.message_queues_reception[s]
+                    
+                    
+            time.sleep(0.01)
+                
+        if len(self.read_list) > 0 :
+
+            readable, writable, errored = select.select(self.read_list, [], [])
+            for s in readable:
+                s.close()
+
+        print(time.asctime() + "    Serveur arrêté.")
             
-            if len(self.read_list) > 0 :
-
-                readable, writable, errored = select.select(self.read_list, [], [])
-                for s in readable:
-                    s.close()
-
-            print(time.asctime() + "    Connexion terminée.")
-            
-    def demarrerHorloge(self):
-
-        print("Le compteur du temps de vote est en cours")
-
     def arreterServeur(self):
 
         self.mAlias_check['state'] = tk.NORMAL
@@ -435,6 +474,7 @@ class appVote:
         try:
             self.read_list.remove(self.mServeur)
         except:
+            print(f"self.read_list.remove(self.mServeur) {self.mServeur}")
             pass
 
         # Terminer l'exécution du serveur
@@ -442,14 +482,10 @@ class appVote:
 
         print("Le serveur est arrêté.")
 
-    def arreterHorloge(self):
-
-        print("Le compteur du temps est arrêté.")
-
     def afficherVoteur(self, index, vote):
 
         i = int(index)
-
+        
         if self.voteurs[i].getVote() != -1 :
             self.resultats[self.voteurs[i].getVote()] -= 1
 
@@ -510,29 +546,33 @@ class appVote:
         
     def run(self):
 
+        self.demarrerServeur()
+        
         while not self.lafin:
     
             self.root.update_idletasks()
             self.root.update()
-            if(not qGUI.empty()):
-                data = qGUI.get()
-                print("Données GUI reçues!" + data)
-                self.majGUI(data)
+            #print(f"self.message_queues_reception == {self.message_queues_reception}")
+            for s in self.message_queues_reception :
+                while not self.message_queues_reception[s].empty():
+                    data = self.message_queues_reception[s].get_nowait()
+                    print("Données GUI reçues!" + data)
+                    self.majGUI(data)
             time.sleep(0.01)
-            
+
+        self.arreterServeur()
+        
         self.root.quit()
 
     def majGUI(self, data):
-
         try :
-        
             dataSplit = data.split(':')
             print(dataSplit)
-            if int(dataSplit[0]) >= self.nbVoteurs :
+            if dataSplit[0].isnumeric() and (int(dataSplit[0]) >= self.nbVoteurs) :
                 tk.messagebox.showinfo("Attention!", f"Le voteur {dataSplit[0]} a transmis son vote mais il ne fait pas partie des voteurs autorisés.")
-            elif int(dataSplit[1]) >= len(self.parametres["couleurs_votes"]) :
+            elif dataSplit[1].isnumeric() and (int(dataSplit[1]) >= len(self.parametres["couleurs_votes"])) :
                 tk.messagebox.showinfo("Attention!", f"Le voteur {dataSplit[0]} a transmis un vote qui ne fait pas partie des choix proposés.")
-            else :
+            elif dataSplit[0].isnumeric() and dataSplit[1].isnumeric() :
                 self.afficherVoteur(dataSplit[0], int(dataSplit[1]))
 
         except Exception as e :
