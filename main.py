@@ -146,6 +146,8 @@ class appVote:
         if filename:
             confFile = filename
 
+        self.voteEnCours = False
+
         print(f"Fichier de configuration utilisé == {confFile}")
         
         with open(confFile, 'r') as file:
@@ -308,16 +310,19 @@ class appVote:
     def controlerVote(self):
         if self.btnDemarrer['text'] == 'Démarrer' :
             self.btnDemarrer.configure(text="Arrêter", bg="red", fg="yellow", activebackground="red")
+            self.mAlias_check['state'] = tk.DISABLED
             print("Le vote est en cours.")
-            
+            self.voteEnCours = True
+            self.message_a_tous("F")
             self.effacerResultatVote()
             self.initialiseVoteurs(self.parametres["nb_voteurs"], self.parametres["nb_colonnes"], self.parametres["nb_rangees"])
             self.majTreeview()
-            #self.demarrerServeur()
+
         else :
             self.btnDemarrer.configure(text="Démarrer", bg="green", fg="yellow", activebackground="green")
+            self.mAlias_check['state'] = tk.NORMAL
             print("Le vote est terminé.")
-            #self.arreterServeur()
+            self.voteEnCours = False
 
     def effacerResultatVote(self):
 
@@ -350,7 +355,6 @@ class appVote:
         self.t = threading.Thread ( target = self.tServer, daemon=True )
         self.lafinSrv = False
         self.t.start()
-        self.mAlias_check['state'] = tk.DISABLED
 
         #if self.dureeVoteVar.get() != "0" :
 
@@ -412,8 +416,10 @@ class appVote:
                             print(f"ID ==>{self.recupereId(data[2:])}")
                             msg = "ID:" + str(self.recupereId(data[2:]))
                             s.send(msg.encode())
-                        else :
+                        elif self.voteEnCours :
                             self.message_queues_reception[s].put(data)
+                        else :
+                            s.send("F".encode())
 
                     else :
                         if s in self.write_list:
@@ -457,8 +463,6 @@ class appVote:
         print(time.asctime() + "    Serveur arrêté.")
             
     def arreterServeur(self):
-
-        self.mAlias_check['state'] = tk.NORMAL
 
         # Indiquer au thread serveur qu'il doit s'arrêter
         self.lafinSrv = True

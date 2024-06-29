@@ -21,9 +21,10 @@ def terminer():
    
    lafinRcpt = True
    lafin = True
-   client.close()
-   # Forcer le thread à terminer proprement
-   socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host,int(port)))
+   if client != None:
+      client.close()
+      # Forcer le thread à terminer proprement
+      socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host,int(port)))
 
 def connect():
 
@@ -107,7 +108,7 @@ def envoi():
    global client
    
    try:
-      data_s = txtPosition.get() + ':' + str(Option.get())
+      data_s = txtPosition.get() + ':' + str(Option.get()-1)
       data_s = str.encode(data_s)
       client.sendall(data_s)
       print("data sent : ", data_s)
@@ -214,13 +215,13 @@ while not lafin:
    if(not qRcpt.empty()):
       data = qRcpt.get()
       print(f"Données reçues == {data}")
+      txtDonnee.set(data)
       if data.startswith("F"):
          reset_option()
       elif data.startswith("ID:"):
          print(f"id == {data[3:]}")
          txtPosition.set(int(data[3:]))
 
-      
    sleep(0.01)
             
 root.quit()
